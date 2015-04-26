@@ -1,4 +1,4 @@
 Issues
 ======
 
-**TODO: Add description**
+Tests with Elixir from the Pragmatic Programmer "Programming Elixir" book

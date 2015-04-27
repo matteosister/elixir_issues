@@ -65,12 +65,43 @@ defmodule Issues.CLI do
     Enum.sort list_of_issues, &(&1["created_at"] <= &2["created_at"])
   end
 
-  def format_to_table(list_of_issues) do
-    data = list_of_issues
-    |> Enum.map(&get_data_from_issue/1)
+  #Issues.CLI.process {"matteosister", "GitElephant", 5}
+
+  defp format_to_table(list_of_issues) do
+    max_size_number = get_max_size list_of_issues, "number"
+    max_size_created_at = get_max_size list_of_issues, "created_at"
+    max_size_title = get_max_size list_of_issues, "title"
+    IO.puts get_table_header(max_size_number, max_size_created_at, max_size_title)
+    IO.puts get_table_divider(max_size_number, max_size_created_at, max_size_title)
+    list_of_issues
+    |> Enum.map(&get_table_row/1)
+    |> Enum.map(&IO.puts/1)
   end
 
-  defp get_data_from_issue(issue) do
-    Dict.take issue, ["number", "created_at", "title"]
+  def get_max_size(list_of_issues, key) do
+    sizes = list_of_issues
+    |> Enum.reduce([], &(&2 ++ [&1[key]]))
+    |> Enum.map &get_size/1
+    Enum.max sizes
+  end
+
+  def get_size(v) when is_integer(v), do: String.length(Integer.to_string(v))
+  def get_size(v) when is_binary(v), do: String.length(v)
+  def get_size(v), do: raise "Unable to calculate size of #{v}"
+
+  defp get_table_header(number_size, created_at_size, title_size) do
+    "#{ get_cell("#", number_size) } | #{ get_cell("created_at", created_at_size) } | #{ get_cell("title", title_size) }"
+  end
+
+  defp get_table_divider(number_size, created_at_size, title_size) do
+    "#{get_cell("-", number_size, ?-)}-+-#{get_cell("-", created_at_size, ?-)}-+#{get_cell("-", title_size, ?-)}-"
+  end
+
+  defp get_table_row(issue) do
+    "#{issue["number"]} | #{issue["created_at"]} | #{issue["title"]}"
+  end
+
+  def get_cell(value, size, pad \\ 32) do
+    String.ljust(value, size, pad)
   end
 end
